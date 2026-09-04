@@ -1,0 +1,14 @@
+{
+  "protocol_version": "1.3",
+  "physical_chat_count": 5,
+  "roles": {
+    "MAIN_ORCHESTRATOR": ["DISPATCH", "GLOBAL_STATE", "FINAL_DECISION", "RECOVERY"],
+    "H01_MARKET_CONTEXT": ["W01", "W02", "W05"],
+    "H02_SCANNER_TECHNICAL": ["W04", "W03"],
+    "H03_RISK_MANAGER": ["W06"],
+    "H04_VALIDATOR_MONITOR": ["W07", "W08"]
+  },
+  "mutual_exclusion": {
+    "H04_VALIDATOR_MONITOR": [["W07", "W08"]]
+  }
+}
