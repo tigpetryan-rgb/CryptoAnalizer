@@ -1,0 +1,41 @@
+name: Dashboard Upgrade
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - dashboard/upgrade-v11.flag
+
+permissions:
+  contents: write
+
+jobs:
+  upgrade:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Apply deterministic dashboard upgrade
+        run: python dashboard/apply_upgrade_v11.py
+      - name: Static guards
+        run: |
+          grep -q 'Workstation 1.1' dashboard/index.html
+          grep -q 'CURRENT ACTIONABLE SETUP = NONE' dashboard/index.html
+          grep -q 'Public derivatives overlay' dashboard/index.html
+          ! grep -q 'src="/style.css"' dashboard/index.html
+          ! grep -q 'src="/app.js"' dashboard/index.html
+      - name: Commit upgraded dashboard
+        run: |
+          if git diff --quiet -- dashboard/index.html; then
+            echo 'No dashboard change required'
+            exit 0
+          fi
+          git config user.name 'dashboard-upgrade-bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add dashboard/index.html
+          git commit -m 'dashboard: apply workstation v1.1 safety telemetry'
+          git push
