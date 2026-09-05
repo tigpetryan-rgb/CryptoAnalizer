@@ -14,7 +14,7 @@
 </style>
 </head>
 <body><div class="app">
-<header class="top"><div class="head"><div><div class="brand">Futures Intelligence</div><small>Cycle 2026-09-05_08-00 · S000034 / D000014 · Workstation 1.2</small></div><div><span class="tag green">AUTO 5/5</span> <span class="tag amber">H02 REFRESH PENDING</span> <span id="syncState" class="tag">SNAPSHOT FALLBACK</span></div></div><div class="nav"><button class="on" data-page="overview">Ընդհանուր</button><button data-page="setups">Setup-ներ</button><button data-page="workflow">Workflow</button><button data-page="reports">Հաշվետվություններ</button></div></header>
+<header class="top"><div class="head"><div><div class="brand">Futures Intelligence</div><small>Cycle 2026-09-05_08-00 · S000034 / D000014 · Workstation 1.3</small></div><div><span class="tag green">AUTO 5/5</span> <span class="tag amber">H02 REFRESH PENDING</span> <span id="syncState" class="tag">SNAPSHOT FALLBACK</span></div></div><div class="nav"><button class="on" data-page="overview">Ընդհանուր</button><button data-page="setups">Setup-ներ</button><button data-page="workflow">Workflow</button><button data-page="reports">Հաշվետվություններ</button></div></header>
 
 <main id="overview" class="page on">
 <section class="card hero"><small>ՎԵՐՋՆԱԿԱՆ PROTOCOL ՈՐՈՇՈՒՄ</small><h1>WAIT / NO TRADE</h1><span class="tag red">NOT AUTHORIZED</span> <span class="tag green">W01/W02/W05 FRESH 19:13</span> <span class="tag amber">W03/W04 REFRESH REQUIRED</span><p class="muted">20:00-ի նոր 4H candle-ից հետո 17:20-ի W03/W04 evidence-ը Stage C-ի համար stale է։ MAIN-ը ճիշտ կերպով չեղարկել է դեռ չսկսված H03-A05/W06-ը և dispatch արել է H02-A06՝ նոր W04+W03 technical thesis ստանալու համար։ Մինչ այդ ընթացիկ actionable setup չկա։</p></section>
@@ -65,16 +65,17 @@
 <nav class="bottom"><button class="on" data-page="overview">Ընդհանուր</button><button data-page="setups">Setup-ներ</button><button data-page="workflow">Workflow</button><button data-page="reports">Հաշվետվ.</button></nav>
 </div>
 <script>
-const SETUPS={
+const HISTORICAL_SETUPS={
 NEARUSDT:{life:'OLD THESIS VOID',cls:'red',label:'OLD W03 · LONG · VOID',oldState:'WAIT_RETEST',entry:'2.18–2.20 after confirmation',trigger:'controlled 2.18–2.20 hold/retest',inv:2.168,stop:2.145,tp1:2.274,tp2:2.35,tp3:2.45,zone:[2.18,2.20],sup:[2.18,2.168],res:[2.274,2.288],thesis:'Հին W03 LONG thesis-ը VOID է, որովհետև հաջորդ public 4H candle-ի low 2.152-ը breach է արել 2.168 hard invalidation-ը։',why:'Հին thesis-ում relative strength և 2.18–2.20 control zone-ը կառուցվածքային հիմք էին։',danger:'Hard invalidation breach + W02 LONG_CROWDING / squeeze risk + Event Risk HIGH։ Հաջորդ rebound-ը հին thesis-ը չի վերականգնում։',block:'Պահանջվում է ամբողջովին նոր W03 technical thesis՝ fresh 20:00 4H structure-ից։',confirm:'H02-A06 must re-derive structure. Old Entry/Stop/TP map-ը չի կարելի reuse անել։',bull:'Միայն նոր W03 thesis, եթե fresh structure-ը նոր higher-low/hold կամ breakout-retest է հաստատում։',base:'NO SETUP մինչև H02-A06 completion և MAIN reconciliation։',bear:'Նոր breakdown / trapped-long structure կարող է նույնիսկ LONG thesis-ը փոխարինել, բայց միայն fresh W03 evidence-ով։'},
 ZECUSDT:{life:'REFRESH_PENDING',cls:'amber',label:'OLD W03 · LONG · STALE',oldState:'WAIT_TRIGGER',entry:'1028–1037 only after old confirmation',trigger:'old trigger >1036 reclaim + retest',inv:1008,stop:1006,tp1:1050,tp2:1080,tp3:1120,zone:[1028,1037],sup:[1008,996.65],res:[1036,1050],thesis:'17:20 W03 thesis-ը stale է նոր 20:00 4H candle-ից հետո։ Public candle-ը intrabar անցել է 1036-ը, բայց protocol Trigger չի հաստատվում public data-ով։',why:'Derivatives backdrop-ը NEAR-ից cleaner է, և relative strength/momentum-ը շարունակում է հետաքրքիր լինել որպես re-evaluation candidate։',danger:'Intrabar breakout-ը կարող է false breakout լինել։ Event Risk HIGH։ Հին 1036 map-ը չի կարող ավտոմատ authorize անել նոր entry։',block:'Fresh W03-ը պետք է որոշի՝ իրական reclaim/retest եղե՞լ է, թե breakout failure/նոր structure է ձևավորվել։',confirm:'H02-A06 fresh W03/W04 → MAIN reconcile → W06 → W07։',bull:'Fresh W03 confirms accepted reclaim/retest կամ նոր continuation thesis։',base:'Wait for fresh technical re-evaluation; no old-map entry.',bear:'Breakout failure և վերադարձ support-ի տակ կարող է վերածվել rejection thesis-ի, բայց միայն fresh W03-ով։'},
 XRPUSDT:{life:'INVALIDATED',cls:'red',label:'OLD W03 · SHORT · INVALIDATED',oldState:'INVALIDATED_FOR_NOW',entry:'NONE',trigger:'new thesis required',inv:1.408,stop:null,tp1:null,tp2:null,tp3:null,zone:null,sup:[1.403,1.39],res:[1.4173,1.434],thesis:'Հին SHORT thesis-ը invalidated է և history/safety reference է միայն։',why:'Այն հիշեցնում է, որ trigger invalidation-ից հետո old thesis reuse-ը արգելված է։',danger:'Հին 1.390 breakdown logic-ը վերադարձնելը առանց նոր structure-ի կլինի stale-thesis error։',block:'No current W03 thesis.',confirm:'Նոր 4H breakdown + failed reclaim structure՝ fresh W03 evidence-ով։',bull:'No active scenario.',base:'No setup.',bear:'Միայն նոր technical thesis-ից հետո։'}
 };
+let SETUPS={...HISTORICAL_SETUPS};
 let current='NEARUSDT',tf='4h',showProtocol=true,showStructure=true,cache={};
 const $=id=>document.getElementById(id);document.querySelectorAll('[data-page]').forEach(b=>b.onclick=()=>{document.querySelectorAll('.page').forEach(p=>p.classList.toggle('on',p.id===b.dataset.page));document.querySelectorAll('[data-page]').forEach(x=>x.classList.toggle('on',x.dataset.page===b.dataset.page));if(b.dataset.page==='setups')renderSetup(current)});document.querySelectorAll('[data-open]').forEach(x=>x.onclick=()=>{current=x.dataset.open;document.querySelector('[data-page="setups"]').click()});
 function fmt(v){if(v==null||!Number.isFinite(+v))return '—';let n=+v;return n>=100?n.toFixed(2):n>=1?n.toFixed(4):n.toFixed(6)}
 function setHtml(id,v){$(id).innerHTML=v}
-function renderSetup(sym){current=sym;let o=SETUPS[sym];$('strip').innerHTML=Object.keys(SETUPS).map(k=>`<button class="pick ${k===sym?'on':''}" onclick="renderSetup('${k}')">${k.replace('USDT','')} · ${SETUPS[k].life}</button>`).join('');$('sym').textContent=sym;$('lifeState').textContent=o.life;$('lifeState').className='tag '+o.cls;$('setupLabel').textContent=o.label;$('thesis').textContent=o.thesis;$('why').textContent=o.why;$('dangerTxt').textContent=o.danger;$('blocker').textContent=o.block;$('confirm').textContent=o.confirm;$('bullScenario').textContent=o.bull;$('baseScenario').textContent=o.base;$('bearScenario').textContent=o.bear;setHtml('levels',[['Old Trigger',o.trigger],['Old Entry',o.entry],['Invalidation',fmt(o.inv)],['Stop Loss',fmt(o.stop)],['TP1',fmt(o.tp1)],['TP2',fmt(o.tp2)],['TP3',fmt(o.tp3)]].map(x=>`<div class="k"><small>${x[0]}</small><b>${x[1]}</b></div>`).join(''));setHtml('gates',[['W01/W02/W05','DONE 19:13','green'],['W03/W04','REFRESH READY','amber'],['W06 Risk','GATED','muted'],['W07 Validator','GATED','muted'],['Authorization','NO','red']].map(x=>`<div class="gate"><span>${x[0]}</span><b class="${x[2]}">${x[1]}</b></div>`).join(''));loadCandles()}
+function renderSetup(sym){current=sym;let o=SETUPS[sym];$('strip').innerHTML=Object.keys(SETUPS).map(k=>`<button class="pick ${k===sym?'on':''}" onclick="renderSetup('${k}')">${k.replace('USDT','')} · ${SETUPS[k].life}</button>`).join('');$('sym').textContent=sym;$('lifeState').textContent=o.life;$('lifeState').className='tag '+o.cls;$('setupLabel').textContent=o.label;$('thesis').textContent=o.thesis;$('why').textContent=o.why;$('dangerTxt').textContent=o.danger;$('blocker').textContent=o.block;$('confirm').textContent=o.confirm;$('bullScenario').textContent=o.bull;$('baseScenario').textContent=o.base;$('bearScenario').textContent=o.bear;let pref=o.isFreshProtocol?'':'Old ';setHtml('levels',[[pref+'Trigger',o.trigger],[pref+'Entry',o.entry],['Invalidation',fmt(o.inv)],['Stop Loss',fmt(o.stop)],['TP1',fmt(o.tp1)],['TP2',fmt(o.tp2)],['TP3',fmt(o.tp3)]].map(x=>`<div class="k"><small>${x[0]}</small><b>${x[1]}</b></div>`).join(''));setHtml('gates',[['W01/W02/W05','DONE 19:13','green'],['W03/W04','REFRESH READY','amber'],['W06 Risk','GATED','muted'],['W07 Validator','GATED','muted'],['Authorization','NO','red']].map(x=>`<div class="gate"><span>${x[0]}</span><b class="${x[2]}">${x[1]}</b></div>`).join(''));loadCandles()}
 document.querySelectorAll('.tf[data-tf]').forEach(b=>b.onclick=()=>{tf=b.dataset.tf;document.querySelectorAll('.tf[data-tf]').forEach(x=>x.classList.toggle('on',x===b));loadCandles()});$('protocolToggle').onclick=()=>{showProtocol=!showProtocol;$('protocolToggle').classList.toggle('on',showProtocol);draw(cache[current+tf]||[])};$('structureToggle').onclick=()=>{showStructure=!showStructure;$('structureToggle').classList.toggle('on',showStructure);draw(cache[current+tf]||[])};$('refreshBtn').onclick=loadCandles;
 async function loadCandles(){$('tfStatus').textContent='Public candles loading…';try{let r=await fetch(`https://fapi.binance.com/fapi/v1/klines?symbol=${current}&interval=${tf}&limit=120`,{cache:'no-store'});if(!r.ok)throw Error('HTTP '+r.status);let d=await r.json();let arr=d.map(x=>[+x[0],+x[1],+x[2],+x[3],+x[4],+x[5]]);cache[current+tf]=arr;if(arr.length){$('px').textContent=fmt(arr[arr.length-1][4])}draw(arr);$('tfStatus').textContent='Public Binance context · authorization չէ'}catch(e){draw([]);$('tfStatus').textContent='Live candles unavailable · core protocol state visible'}}
 function ema(vals,n){let k=2/(n+1),e=vals[0];return vals.map((v,i)=>e=i? v*k+e*(1-k):v)}function rsi(vals,n=14){if(vals.length<n+1)return null;let g=0,l=0;for(let i=vals.length-n;i<vals.length;i++){let d=vals[i]-vals[i-1];if(d>0)g+=d;else l-=d}let ag=g/n,al=l/n;if(!al)return 100;return 100-100/(1+ag/al)}function atr(d,n=14){if(d.length<n+1)return null;let tr=[];for(let i=1;i<d.length;i++)tr.push(Math.max(d[i][2]-d[i][3],Math.abs(d[i][2]-d[i-1][4]),Math.abs(d[i][3]-d[i-1][4])));return tr.slice(-n).reduce((a,b)=>a+b,0)/n}
@@ -91,11 +92,57 @@ function dashText(el,v){if(el&&v!==undefined&&v!==null)el.textContent=String(v)}
 function dashMetric(label){return [...document.querySelectorAll('.k')].find(x=>x.querySelector('small')?.textContent.trim()===label)}
 function dashRow(label){return [...document.querySelectorAll('.row')].find(x=>x.querySelector('b')?.textContent.trim()===label)}
 function dashStep(id){return [...document.querySelectorAll('.step')].find(x=>x.querySelector('b')?.textContent.trim()===id)}
+
+function arrText(v,fallback='—'){if(Array.isArray(v))return v.length?v.join(' · '):fallback;if(v===undefined||v===null||v==='')return fallback;return String(v)}
+function numOrNull(v){if(v===undefined||v===null||v==='')return null;let n=Number(v);return Number.isFinite(n)?n:null}
+function thesisToSetup(t){
+  const status=String(t.thesis_status||t.lifecycle_state||'PENDING').toUpperCase();
+  const nonAction=['VOID','INVALIDATED','NO_SETUP','REJECTED'].some(x=>status.includes(x));
+  const cls=nonAction?'red':(status.includes('READY')||status.includes('WAIT')||status.includes('TRIGGER')?'amber':'blue');
+  const ann=t.chart_annotations||{};
+  const sup=t.support||ann.support||ann.support_levels||[];
+  const res=t.resistance||ann.resistance||ann.resistance_levels||[];
+  const zone=t.entry_zone||ann.entry_zone||null;
+  const source=[t.thesis_id,t.thesis_generation,t.source_w03_timestamp,t.source_state_revision].filter(Boolean).join(' · ');
+  return {
+    life:status,cls,isFreshProtocol:true,thesisId:t.thesis_id||'MISSING_THESIS_ID',
+    label:`W03 · ${String(t.side||'').toUpperCase()} · ${status}`,
+    oldState:status,
+    entry:t.entry??ann.entry??'—',trigger:t.trigger??ann.trigger??'—',
+    inv:numOrNull(t.invalidation??ann.invalidation),stop:numOrNull(t.stop??ann.stop),
+    tp1:numOrNull(t.tp1??ann.tp1),tp2:numOrNull(t.tp2??ann.tp2),tp3:numOrNull(t.tp3??ann.tp3),
+    zone:Array.isArray(zone)?zone.map(Number).filter(Number.isFinite):null,
+    sup:Array.isArray(sup)?sup.map(Number).filter(Number.isFinite):[],
+    res:Array.isArray(res)?res.map(Number).filter(Number.isFinite):[],
+    thesis:`THESIS_ID ${t.thesis_id||'MISSING'} · ${arrText(t.thesis_generation,'—')} · source ${arrText(t.source_w03_timestamp,'—')} / ${arrText(t.source_state_revision,'—')}. ${arrText(t.thesis_summary||t.summary,'')}`.trim(),
+    why:arrText(t.why||t.confluence_factors,'Protocol W03 thesis'),
+    danger:arrText(t.why_not||t.contraindications||t.dangerous_flags,'—'),
+    block:arrText(t.primary_blocker,'—'),
+    confirm:arrText(t.required_confirmation,'—'),
+    bull:arrText(t.scenarios?.bull||t.bull_scenario,'Fresh W03 structure only'),
+    base:arrText(t.scenarios?.base||t.base_scenario,'WAIT until required confirmation'),
+    bear:arrText(t.scenarios?.bear||t.bear_scenario,'Invalidation / alternate structure'),
+    supersedes:t.supersedes_thesis_id||'NONE',source
+  };
+}
+function hydrateProtocolSetups(d){
+  const items=Array.isArray(d.current_theses)?d.current_theses:[];
+  const dyn={};
+  for(const t of items){if(!t||!t.symbol||!t.thesis_id)continue;dyn[String(t.symbol).toUpperCase()]=thesisToSetup(t)}
+  SETUPS={...HISTORICAL_SETUPS,...dyn};
+  const dynKeys=Object.keys(dyn);
+  if(dynKeys.length){current=dynKeys.includes(current)?current:dynKeys[0]}
+  else if(!SETUPS[current])current=Object.keys(SETUPS)[0];
+  const active=document.querySelector('.activeNone b');
+  if(active){active.textContent=dynKeys.length?`FRESH W03 THESES = ${dynKeys.length}`:'CURRENT ACTIONABLE SETUP = NONE'}
+  if(document.getElementById('setups')?.classList.contains('on')&&SETUPS[current])renderSetup(current);
+}
+
 function applyDashboardSnapshot(d){
   if(!d||d.project_key!=='FUTURES_INTELLIGENCE')throw new Error('snapshot project mismatch');
   const sys=d.system||{},dec=d.decision||{},cap=d.capabilities||{},reg=d.registries||{},q=sys.queue||{};
   const head=document.querySelector('.brand')?.parentElement?.querySelector('small');
-  if(head)head.textContent=`Cycle ${sys.cycle_id||'—'} · ${sys.state_revision||'—'} / ${sys.dispatch_revision||'—'} · Workstation 1.2`;
+  if(head)head.textContent=`Cycle ${sys.cycle_id||'—'} · ${sys.state_revision||'—'} / ${sys.dispatch_revision||'—'} · Workstation 1.3`;
   const hero=document.querySelector('.hero');
   dashText(hero?.querySelector('h1'),dec.status||'WAIT / NO TRADE');
   const authTag=hero?.querySelector('.tag.red'); if(authTag)authTag.textContent=dec.authorization||'NOT AUTHORIZED';
@@ -109,6 +156,7 @@ function applyDashboardSnapshot(d){
   const labels={Ready:q.ready,Claimed:q.claimed,Done:q.done,Cancelled:q.cancelled};for(const [k,v] of Object.entries(labels)){let x=dashMetric(k);if(x&&v!==undefined)dashText(x.querySelector('b'),v)}
   for(const id of ['W01','W02','W03','W04','W05','W06','W07']){let st=dashStep(id);if(st&&cap[id]){dashText(st.querySelector('small'),cap[id]);st.classList.remove('done','current','block');let v=String(cap[id]).toUpperCase();if(v==='DONE'||v.includes('PASS')||v.includes('APPROVE'))st.classList.add('done');else if(v.includes('READY')||v.includes('REFRESH'))st.classList.add('current');else if(v.includes('REJECT')||v.includes('FAIL'))st.classList.add('block')}}
   const none=document.querySelector('.activeNone b');if(none)none.textContent=(reg.current_actionable_setups||0)>0?`CURRENT ACTIONABLE SETUPS = ${reg.current_actionable_setups}`:'CURRENT ACTIONABLE SETUP = NONE';
+  hydrateProtocolSetups(d);
   const sync=document.getElementById('syncState');if(sync){sync.textContent='SNAPSHOT LIVE';sync.className='tag green'}
   document.documentElement.dataset.snapshotRevision=sys.state_revision||'';
 }
