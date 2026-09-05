@@ -28,15 +28,30 @@ def validate_preclaim(assignment: Assignment, observed_state_revision: str, allo
     return True, "OK"
 
 
+def validate_refresh_inputs(*, assignment_is_refresh: bool, baseline_stale: bool, fresh_current_data_available: bool) -> tuple[bool, str]:
+    """Validate input freshness without rejecting the stale baseline that a refresh is meant to replace."""
+    if not fresh_current_data_available:
+        return False, "FRESH_CURRENT_DATA_UNAVAILABLE"
+    if baseline_stale and not assignment_is_refresh:
+        return False, "STALE_INPUT"
+    return True, "OK"
+
+
 def validate_duplicate_replay(assignment: Assignment, receipt_exists: bool) -> tuple[bool, str]:
     if assignment.queue_status == "DONE" and receipt_exists:
         return False, "DUPLICATE_ALREADY_COMPLETED"
     return True, "OK"
 
 
-def choose_recovery_action(queue_status: str, receipt_exists: bool, reports_exist: bool, lease_expired: bool) -> str:
+def choose_recovery_action(queue_status: str, receipt_exists: bool, reports_exist: bool, lease_expired: bool, due_elapsed: bool = False) -> str:
     if queue_status == "DONE" and receipt_exists:
         return "CANCEL_RETRY_ALREADY_COMPLETED"
+    if queue_status == "READY":
+        if receipt_exists or reports_exist:
+            return "RECONCILE_READY_SIDE_EFFECTS"
+        if due_elapsed:
+            return "RECOVER_SAME_ASSIGNMENT"
+        return "WAIT_READY"
     if queue_status == "CLAIMED" and not lease_expired:
         return "RESUME_WAIT_FOR_ACTIVE_LEASE"
     if queue_status == "CLAIMED" and lease_expired and receipt_exists and reports_exist:
@@ -44,6 +59,18 @@ def choose_recovery_action(queue_status: str, receipt_exists: bool, reports_exis
     if queue_status == "CLAIMED" and lease_expired and not receipt_exists:
         return "REQUEUE"
     return "ESCALATE_TO_DEADLETTER"
+
+
+def validate_thesis_lineage(*, w03_thesis_id: Optional[str], thesis_status: Optional[str], w06_thesis_id: Optional[str] = None, w07_thesis_id: Optional[str] = None) -> tuple[bool, str]:
+    if not w03_thesis_id:
+        return False, "MISSING_THESIS_ID"
+    if str(thesis_status or "").upper() in {"VOID", "INVALIDATED", "NO_SETUP"}:
+        return False, "NON_ACTIONABLE_THESIS"
+    if w06_thesis_id is not None and w06_thesis_id != w03_thesis_id:
+        return False, "W06_THESIS_MISMATCH"
+    if w07_thesis_id is not None and w07_thesis_id != w03_thesis_id:
+        return False, "W07_THESIS_MISMATCH"
+    return True, "OK"
 
 
 def validate_scope(scope_matches: bool) -> tuple[bool, str]:
