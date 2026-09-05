@@ -1,2 +1,3 @@
-trigger=2026-09-05T23:16:00+04:00
+trigger=2026-09-05T23:26:00+04:00
 upgrade=workstation-v1.3-thesis-aware-renderer
+reason=reconcile-renderer-metadata-with-current-v1.3-source
