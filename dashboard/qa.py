@@ -25,13 +25,19 @@ for forbidden in ['data-page="home"','data-page="markets"','data-page="orders"',
     check(forbidden not in html.lower(), f'Forbidden fake navigation returned: {forbidden}')
 
 # Workstation 1.2+ must remain dual-source: a safe embedded fallback plus optional live snapshot sync.
-if 'Workstation 1.2' in html:
-    check('DASH_SNAPSHOT_URL' in html, 'v1.2 live snapshot URL missing')
-    check('syncDashboardSnapshot' in html and 'applyDashboardSnapshot' in html, 'v1.2 snapshot sync functions missing')
-    check('SNAPSHOT FALLBACK' in html and 'FALLBACK · SYNC ERROR' in html, 'v1.2 fallback state markers missing')
-    check('window.DASH_DUE' in html, 'v1.2 dynamic due clock binding missing')
-    check('cache:\'no-store\'' in html or 'cache:"no-store"' in html, 'v1.2 snapshot fetch must bypass stale cache')
-    check('raw.githubusercontent.com/tigpetryan-rgb/CryptoAnalizer/main/dashboard/snapshot.json' in html, 'v1.2 canonical snapshot source mismatch')
+if 'Workstation 1.2' in html or 'Workstation 1.3' in html:
+    check('DASH_SNAPSHOT_URL' in html, 'live snapshot URL missing')
+    check('syncDashboardSnapshot' in html and 'applyDashboardSnapshot' in html, 'snapshot sync functions missing')
+    check('SNAPSHOT FALLBACK' in html and 'FALLBACK · SYNC ERROR' in html, 'fallback state markers missing')
+    check('window.DASH_DUE' in html, 'dynamic due clock binding missing')
+    check('cache:\'no-store\'' in html or 'cache:"no-store"' in html, 'snapshot fetch must bypass stale cache')
+    check('raw.githubusercontent.com/tigpetryan-rgb/CryptoAnalizer/main/dashboard/snapshot.json' in html, 'canonical snapshot source mismatch')
+
+# Workstation 1.3+ must be able to replace historical maps with fresh W03 thesis payloads.
+if 'Workstation 1.3' in html:
+    for marker in ['HISTORICAL_SETUPS','hydrateProtocolSetups','thesisToSetup','current_theses','THESIS_ID']:
+        check(marker in html, f'v1.3 thesis renderer marker missing: {marker}')
+    check("SETUPS={...HISTORICAL_SETUPS,...dyn}" in html, 'fresh protocol setup must override same-symbol historical fallback')
 
 check(snapshot.get('project_key')=='FUTURES_INTELLIGENCE','snapshot project key mismatch')
 system=snapshot.get('system',{})
@@ -82,10 +88,31 @@ if lineage is not None:
     check(must.issubset(required),'thesis lineage required_fields incomplete')
     check('THESIS_ID' in str(lineage.get('chain_rule','')),'thesis lineage chain rule missing THESIS_ID binding')
 
+# Optional now, mandatory once populated by fresh W03 reconciliation.
+current_theses=snapshot.get('current_theses',[])
+check(isinstance(current_theses,list),'current_theses must be an array when present')
+seen=set()
+valid_generation={'NEW','CONTINUATION','REPLACEMENT','VOID','NO_SETUP'}
+for i,t in enumerate(current_theses if isinstance(current_theses,list) else []):
+    prefix=f'current_theses[{i}]'
+    check(isinstance(t,dict),f'{prefix} must be an object')
+    if not isinstance(t,dict): continue
+    for k in ['symbol','side','thesis_id','thesis_status','thesis_generation','source_w03_timestamp','source_state_revision','supersedes_thesis_id']:
+        check(bool(t.get(k)),f'{prefix}.{k} missing')
+    tid=str(t.get('thesis_id',''))
+    check(tid not in seen,f'duplicate THESIS_ID: {tid}')
+    seen.add(tid)
+    check(str(t.get('source_state_revision','')).startswith('S'),f'{prefix}.source_state_revision invalid')
+    check(str(t.get('thesis_generation','')).upper() in valid_generation,f'{prefix}.thesis_generation invalid')
+    status=str(t.get('thesis_status','')).upper()
+    generation=str(t.get('thesis_generation','')).upper()
+    if status in {'VOID','INVALIDATED','NO_SETUP'} or generation in {'VOID','NO_SETUP'}:
+        check(t.get('entry') in [None,'','NONE','—'],f'{prefix}: non-actionable thesis must not expose entry')
+
 scripts=re.findall(r'<script>(.*?)</script>',html,re.S)
 check(bool(scripts),'inline JavaScript missing')
 (root/'.qa-inline.js').write_text('\n'.join(scripts),encoding='utf-8')
 if errors:
     print('\n'.join('ERROR: '+e for e in errors))
     sys.exit(1)
-print(f'QA PASS: ids={len(ids)} scripts={len(scripts)} contract={snapshot.get("contract_version")} auth={auth}')
+print(f'QA PASS: ids={len(ids)} scripts={len(scripts)} contract={snapshot.get("contract_version")} auth={auth} current_theses={len(current_theses) if isinstance(current_theses,list) else -1}')
