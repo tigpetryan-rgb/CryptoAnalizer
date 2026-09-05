@@ -24,6 +24,15 @@ check(len(ids)==len(set(ids)), 'Duplicate HTML ids detected')
 for forbidden in ['data-page="home"','data-page="markets"','data-page="orders"','data-page="assets"']:
     check(forbidden not in html.lower(), f'Forbidden fake navigation returned: {forbidden}')
 
+# Workstation 1.2+ must remain dual-source: a safe embedded fallback plus optional live snapshot sync.
+if 'Workstation 1.2' in html:
+    check('DASH_SNAPSHOT_URL' in html, 'v1.2 live snapshot URL missing')
+    check('syncDashboardSnapshot' in html and 'applyDashboardSnapshot' in html, 'v1.2 snapshot sync functions missing')
+    check('SNAPSHOT FALLBACK' in html and 'FALLBACK · SYNC ERROR' in html, 'v1.2 fallback state markers missing')
+    check('window.DASH_DUE' in html, 'v1.2 dynamic due clock binding missing')
+    check('cache:\'no-store\'' in html or 'cache:"no-store"' in html, 'v1.2 snapshot fetch must bypass stale cache')
+    check('raw.githubusercontent.com/tigpetryan-rgb/CryptoAnalizer/main/dashboard/snapshot.json' in html, 'v1.2 canonical snapshot source mismatch')
+
 check(snapshot.get('project_key')=='FUTURES_INTELLIGENCE','snapshot project key mismatch')
 system=snapshot.get('system',{})
 decision=snapshot.get('decision',{})
