@@ -1,21 +1,24 @@
 from pathlib import Path
+import json
+import subprocess
 
 p=Path('dashboard/index.html')
 s=p.read_text(encoding='utf-8')
+index_changed=False
+
 if 'Workstation 1.3' in s:
-    print('dashboard already at v1.3; no change')
-    raise SystemExit(0)
-if 'Workstation 1.2' not in s:
-    raise RuntimeError('v1.2 base marker missing')
+    print('dashboard renderer already at v1.3')
+elif 'Workstation 1.2' not in s:
+    raise RuntimeError('v1.2/v1.3 base marker missing')
+else:
+    s=s.replace('Workstation 1.2','Workstation 1.3')
+    s=s.replace('const SETUPS={','const HISTORICAL_SETUPS={',1)
+    anchor='};\nlet current=\'NEARUSDT\''
+    if anchor not in s:
+        raise RuntimeError('SETUPS closing anchor missing')
+    s=s.replace(anchor,"};\nlet SETUPS={...HISTORICAL_SETUPS};\nlet current='NEARUSDT'",1)
 
-s=s.replace('Workstation 1.2','Workstation 1.3')
-s=s.replace('const SETUPS={','const HISTORICAL_SETUPS={',1)
-anchor='};\nlet current=\'NEARUSDT\''
-if anchor not in s:
-    raise RuntimeError('SETUPS closing anchor missing')
-s=s.replace(anchor,"};\nlet SETUPS={...HISTORICAL_SETUPS};\nlet current='NEARUSDT'",1)
-
-hydrate=r'''
+    hydrate=r'''
 function arrText(v,fallback='—'){if(Array.isArray(v))return v.length?v.join(' · '):fallback;if(v===undefined||v===null||v==='')return fallback;return String(v)}
 function numOrNull(v){if(v===undefined||v===null||v==='')return null;let n=Number(v);return Number.isFinite(n)?n:null}
 function thesisToSetup(t){
@@ -61,22 +64,38 @@ function hydrateProtocolSetups(d){
   if(document.getElementById('setups')?.classList.contains('on')&&SETUPS[current])renderSetup(current);
 }
 '''
-anchor2='function applyDashboardSnapshot(d){'
-if anchor2 not in s:
-    raise RuntimeError('snapshot apply anchor missing')
-s=s.replace(anchor2,hydrate+'\n'+anchor2,1)
+    anchor2='function applyDashboardSnapshot(d){'
+    if anchor2 not in s:
+        raise RuntimeError('snapshot apply anchor missing')
+    s=s.replace(anchor2,hydrate+'\n'+anchor2,1)
 
-call_anchor="  const sync=document.getElementById('syncState');if(sync){sync.textContent='SNAPSHOT LIVE';sync.className='tag green'}"
-if call_anchor not in s:
-    raise RuntimeError('snapshot apply tail anchor missing')
-s=s.replace(call_anchor,"  hydrateProtocolSetups(d);\n"+call_anchor,1)
+    call_anchor="  const sync=document.getElementById('syncState');if(sync){sync.textContent='SNAPSHOT LIVE';sync.className='tag green'}"
+    if call_anchor not in s:
+        raise RuntimeError('snapshot apply tail anchor missing')
+    s=s.replace(call_anchor,"  hydrateProtocolSetups(d);\n"+call_anchor,1)
 
-# Fresh protocol maps must not be mislabeled as old levels.
-old="setHtml('levels',[['Old Trigger',o.trigger],['Old Entry',o.entry],['Invalidation',fmt(o.inv)],['Stop Loss',fmt(o.stop)],['TP1',fmt(o.tp1)],['TP2',fmt(o.tp2)],['TP3',fmt(o.tp3)]]"
-new="let pref=o.isFreshProtocol?'':'Old ';setHtml('levels',[[pref+'Trigger',o.trigger],[pref+'Entry',o.entry],['Invalidation',fmt(o.inv)],['Stop Loss',fmt(o.stop)],['TP1',fmt(o.tp1)],['TP2',fmt(o.tp2)],['TP3',fmt(o.tp3)]]"
-if old not in s:
-    raise RuntimeError('levels render anchor missing')
-s=s.replace(old,new,1)
+    old="setHtml('levels',[['Old Trigger',o.trigger],['Old Entry',o.entry],['Invalidation',fmt(o.inv)],['Stop Loss',fmt(o.stop)],['TP1',fmt(o.tp1)],['TP2',fmt(o.tp2)],['TP3',fmt(o.tp3)]]"
+    new="let pref=o.isFreshProtocol?'':'Old ';setHtml('levels',[[pref+'Trigger',o.trigger],[pref+'Entry',o.entry],['Invalidation',fmt(o.inv)],['Stop Loss',fmt(o.stop)],['TP1',fmt(o.tp1)],['TP2',fmt(o.tp2)],['TP3',fmt(o.tp3)]]"
+    if old not in s:
+        raise RuntimeError('levels render anchor missing')
+    s=s.replace(old,new,1)
 
-p.write_text(s,encoding='utf-8')
-print('dashboard upgraded to v1.3 thesis-aware renderer')
+    p.write_text(s,encoding='utf-8')
+    index_changed=True
+    print('dashboard upgraded to v1.3 thesis-aware renderer')
+
+# Presentation-contract reconciliation only. Do not alter protocol/market state.
+sp=Path('dashboard/snapshot.json')
+d=json.loads(sp.read_text(encoding='utf-8'))
+meta=d.setdefault('meta',{})
+meta['dashboard_version']='Analyst Workstation 1.3'
+source_commit=subprocess.check_output(
+    ['git','log','-1','--format=%H','--','dashboard/index.html'],
+    text=True
+).strip()
+if len(source_commit)==40:
+    meta['dashboard_source_commit']=source_commit
+if 'current_theses' not in d:
+    d['current_theses']=[]
+sp.write_text(json.dumps(d,ensure_ascii=False,separators=(',',':')),encoding='utf-8')
+print(f'v1.3 metadata reconciled; index_changed={index_changed}; source_commit={source_commit}')
