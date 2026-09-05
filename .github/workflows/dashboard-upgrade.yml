@@ -31,14 +31,20 @@ jobs:
           grep -q 'Public derivatives overlay' dashboard/index.html
           ! grep -q 'src="/style.css"' dashboard/index.html
           ! grep -q 'src="/app.js"' dashboard/index.html
-      - name: Commit upgraded dashboard
+          python - <<'PY'
+          import json
+          d=json.load(open('dashboard/snapshot.json',encoding='utf-8'))
+          assert d.get('meta',{}).get('dashboard_version') == 'Analyst Workstation 1.3'
+          assert isinstance(d.get('current_theses'),list)
+          PY
+      - name: Commit reconciled dashboard artifacts
         run: |
-          if git diff --quiet -- dashboard/index.html; then
+          if git diff --quiet -- dashboard/index.html dashboard/snapshot.json; then
             echo 'No dashboard change required'
             exit 0
           fi
           git config user.name 'dashboard-upgrade-bot'
           git config user.email 'actions@users.noreply.github.com'
-          git add dashboard/index.html
-          git commit -m 'dashboard: apply workstation v1.3 thesis-aware renderer'
+          git add dashboard/index.html dashboard/snapshot.json
+          git commit -m 'dashboard: reconcile workstation v1.3 renderer metadata'
           git push
