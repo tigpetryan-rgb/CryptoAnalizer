@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
     paths:
-      - dashboard/upgrade-v12.flag
+      - dashboard/upgrade-v13.flag
 
 permissions:
   contents: write
@@ -20,13 +20,14 @@ jobs:
         with:
           python-version: '3.12'
       - name: Apply deterministic dashboard upgrade
-        run: python dashboard/apply_upgrade_v12.py
+        run: python dashboard/apply_upgrade_v13.py
       - name: Static guards
         run: |
-          grep -q 'Workstation 1.2' dashboard/index.html
+          grep -q 'Workstation 1.3' dashboard/index.html
           grep -q 'DASH_SNAPSHOT_URL' dashboard/index.html
-          grep -q 'SNAPSHOT FALLBACK' dashboard/index.html
-          grep -q 'CURRENT ACTIONABLE SETUP = NONE' dashboard/index.html
+          grep -q 'HISTORICAL_SETUPS' dashboard/index.html
+          grep -q 'hydrateProtocolSetups' dashboard/index.html
+          grep -q 'THESIS_ID' dashboard/index.html
           grep -q 'Public derivatives overlay' dashboard/index.html
           ! grep -q 'src="/style.css"' dashboard/index.html
           ! grep -q 'src="/app.js"' dashboard/index.html
@@ -39,5 +40,5 @@ jobs:
           git config user.name 'dashboard-upgrade-bot'
           git config user.email 'actions@users.noreply.github.com'
           git add dashboard/index.html
-          git commit -m 'dashboard: apply workstation v1.2 live snapshot sync'
+          git commit -m 'dashboard: apply workstation v1.3 thesis-aware renderer'
           git push
