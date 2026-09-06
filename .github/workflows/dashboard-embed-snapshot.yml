@@ -1,0 +1,57 @@
+name: Dashboard Embedded Snapshot
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - dashboard/snapshot.json
+      - dashboard/embed_snapshot_fallback.py
+      - .github/workflows/dashboard-embed-snapshot.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  embed:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Embed authoritative snapshot into self-contained dashboard
+        run: python dashboard/embed_snapshot_fallback.py
+      - name: Self-contained guards
+        run: |
+          grep -q 'DASH_EMBEDDED_SNAPSHOT' dashboard/index.html
+          grep -q 'EMBEDDED SAFE · SYNC ERROR' dashboard/index.html
+          ! grep -q 'src="/style.css"' dashboard/index.html
+          ! grep -q 'src="/app.js"' dashboard/index.html
+          python - <<'PY'
+          import json, re
+          from pathlib import Path
+          html=Path('dashboard/index.html').read_text(encoding='utf-8')
+          snap=json.loads(Path('dashboard/snapshot.json').read_text(encoding='utf-8'))
+          m=re.search(r'^const DASH_EMBEDDED_SNAPSHOT=(\{.*\});$',html,re.M)
+          assert m, 'embedded snapshot constant missing'
+          embedded=json.loads(m.group(1))
+          assert embedded['project_key']=='FUTURES_INTELLIGENCE'
+          assert embedded['system']['state_revision']==snap['system']['state_revision']
+          assert embedded['system']['dispatch_revision']==snap['system']['dispatch_revision']
+          assert embedded['decision']['authorization']==snap['decision']['authorization']
+          assert embedded['current_theses']==snap['current_theses']
+          PY
+      - name: Commit embedded renderer fallback
+        run: |
+          if git diff --quiet -- dashboard/index.html; then
+            echo 'Embedded snapshot already current'
+            exit 0
+          fi
+          git config user.name 'dashboard-snapshot-bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add dashboard/index.html
+          git commit -m 'dashboard: embed authoritative snapshot fallback'
+          git push
