@@ -5,10 +5,14 @@ on:
     branches: [main]
     paths:
       - 'dashboard/**'
+      - 'vercel.json'
+      - '.github/workflows/dashboard-qa.yml'
   pull_request:
     branches: [main]
     paths:
       - 'dashboard/**'
+      - 'vercel.json'
+      - '.github/workflows/dashboard-qa.yml'
   workflow_dispatch:
 
 permissions:
@@ -29,3 +33,20 @@ jobs:
         run: python dashboard/qa.py
       - name: Inline JavaScript syntax
         run: node --check dashboard/.qa-inline.js
+      - name: Vercel root delivery guards
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          cfg=json.loads(Path('vercel.json').read_text(encoding='utf-8'))
+          rewrites=cfg.get('rewrites',[])
+          assert {'source':'/','destination':'/dashboard/index.html'} in rewrites, 'root rewrite missing'
+          headers=cfg.get('headers',[])
+          roots=[h for h in headers if h.get('source') in {'/','/dashboard/index.html'}]
+          assert len(roots)==2, 'expected no-store headers for root and index'
+          for item in roots:
+              values={x.get('key','').lower():x.get('value','') for x in item.get('headers',[])}
+              assert 'cache-control' in values and 'no-store' in values['cache-control'].lower(), 'no-store cache guard missing'
+          html=Path('dashboard/index.html').read_text(encoding='utf-8')
+          assert 'DASH_EMBEDDED_SNAPSHOT' in html, 'embedded authoritative fallback missing'
+          PY
