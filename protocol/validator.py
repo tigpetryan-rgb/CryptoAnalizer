@@ -28,6 +28,34 @@ def validate_preclaim(assignment: Assignment, observed_state_revision: str, allo
     return True, "OK"
 
 
+def validate_output_envelope(
+    *,
+    expected_cycle_id: str,
+    expected_assignment_id: str,
+    expected_state_revision: str,
+    expected_dispatch_revision: str,
+    output_cycle_id: str,
+    output_assignment_id: str,
+    output_state_revision: str,
+    output_dispatch_revision: str,
+) -> tuple[bool, str]:
+    """Require helpers to copy the authoritative execution envelope literally.
+
+    Helpers never derive a next/previous revision. Any one-field mismatch is a
+    fail-closed protocol conflict and the output cannot be completed or used
+    downstream.
+    """
+    if output_cycle_id != expected_cycle_id:
+        return False, "OUTPUT_CYCLE_MISMATCH"
+    if output_assignment_id != expected_assignment_id:
+        return False, "OUTPUT_ASSIGNMENT_MISMATCH"
+    if output_state_revision != expected_state_revision:
+        return False, "OUTPUT_STATE_REVISION_MISMATCH"
+    if output_dispatch_revision != expected_dispatch_revision:
+        return False, "OUTPUT_DISPATCH_REVISION_MISMATCH"
+    return True, "OK"
+
+
 def validate_refresh_inputs(*, assignment_is_refresh: bool, baseline_stale: bool, fresh_current_data_available: bool) -> tuple[bool, str]:
     """Validate input freshness without rejecting the stale baseline that a refresh is meant to replace."""
     if not fresh_current_data_available:
