@@ -1,3 +1,5 @@
 qa=v1
-state=S000033
-snapshot=dashboard_snapshot_v0.7
+state=S000052
+snapshot=dashboard_snapshot_v0.9
+self_contained_fallback=embedded_authoritative
+parent=a9fd059729ef0b84b946b5224d236428c77ceff9
